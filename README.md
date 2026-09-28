@@ -30,29 +30,73 @@ A extração dos dados foi automatizada através de um script em Python utilizan
 
 ## 3. Modelagem e Catálogo de Dados (Etapa 4.3)
 
-Adotamos a **Arquitetura Medalhão** (Bronze, Silver, Gold) para organizar o nosso Data Lakehouse. O modelo final na camada Gold segue o conceito de *One Big Table* (Tabela Agregada), unindo o fato (entregas) às dimensões (clientes, vendedores e avaliações) para otimizar as consultas analíticas de BI.
+Para estruturar os dados de forma otimizada para consultas analíticas (OLAP), adotamos o **Modelo Estrela (Star Schema)**. Esta arquitetura dimensional é composta por uma tabela central de fatos rodeada por tabelas de dimensões descritivas, o que reduz a redundância, simplifica as junções (*JOINs*) e acelera a performance das consultas nas ferramentas de BI.
 
+A nossa modelagem foi definida da seguinte forma:
+* **Tabela Fato (`fato_logistica`):** É o coração do modelo. Regista o evento transacional (o pedido/entrega) e armazena as métricas quantitativas (dias de processamento, dias de transporte, dias de atraso) e as chaves estrangeiras (FK).
+* **Tabelas Dimensão (`dim_clientes`, `dim_vendedores`, `dim_avaliacoes`):** Armazenam os atributos descritivos que dão contexto à tabela facto, como a localização geográfica de quem comprou e de quem vendeu, e o texto/nota da avaliação final.
+
+Abaixo encontra-se a representação visual (Diagrama de Entidade-Relacionamento) da nossa modelagem em Estrela:
+
+```mermaid
+erDiagram
+    FATO_LOGISTICA {
+        string order_id PK "Chave Primária do Pedido"
+        string customer_id FK "Chave Estrangeira do Cliente"
+        string seller_id FK "Chave Estrangeira do Vendedor"
+        string review_id FK "Chave Estrangeira da Avaliação"
+        int dias_processamento "Métrica: Tempo interno"
+        int dias_transporte "Métrica: Tempo de frete"
+        int dias_atraso "Métrica: Atraso total"
+        boolean is_atrasado "Métrica: Flag de atraso"
+    }
+    
+    DIM_CLIENTES {
+        string customer_id PK "Identificador único"
+        string customer_city "Cidade"
+        string customer_state "Estado (UF)"
+    }
+    
+    DIM_VENDEDORES {
+        string seller_id PK "Identificador único"
+        string seller_city "Cidade"
+        string seller_state "Estado (UF)"
+    }
+    
+    DIM_AVALIACOES {
+        string review_id PK "Identificador único"
+        int review_score "Nota de 1 a 5"
+        timestamp review_creation_date "Data da avaliação"
+    }
+
+    %% Relacionamentos do Modelo Estrela
+    FATO_LOGISTICA }o--|| DIM_CLIENTES : "realizado por"
+    FATO_LOGISTICA }o--|| DIM_VENDEDORES : "despachado por"
+    FATO_LOGISTICA |o--|| DIM_AVALIACOES : "classificado em"
+```
 O **Catálogo de Dados** foi integralmente documentado no Unity Catalog do Databricks, detalhando descrições, tipos de dados e os **domínios de valores** de cada coluna (ex: limites numéricos e categorias aceites).
 
 * **Script de referência:** [`04 - bronze.ipynb`](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Notebooks/04%20-%20bronze.ipynb)
 
-![Catálogo de Dados Databricks](link_para_sua_imagem_do_catalogo.png)
-*(Captura de tela demonstrando as colunas documentadas com domínios no Unity Catalog)*
 
 ---
 
 ## 4. Pipeline de Dados (Etapa 4.4)
 
-O processo ETL foi segmentado em múltiplos *notebooks* (PySpark/SQL) para garantir organização, reprodutibilidade e modularidade:
+O processo ETL foi segmentado em múltiplos *notebooks* (PySpark/SQL) para garantir organização, reprodutibilidade e modularidade. 
 
-1. **`02 - preparação.ipynb`**: Configuração de catálogos e esquemas.
-2. **`03 - download.ipynb`**: Extração (Extract) da API para o Volume.
-3. **`04 - bronze.ipynb`**: Carga (Load) inicial (formato Delta) e catalogação.
-4. **`05 - silver.ipynb`**: Transformação (Transform), tipagem e auditoria de qualidade.
-5. **`06 - gold.ipynb`**: Desnormalização e criação do modelo analítico (`fato_logistica`).
+Uma decisão arquitetural importante deste projeto foi a de **persistir todos os arquivos originais baixados do Kaggle na camada Bronze**, garantindo um histórico completo, inalterado e pronto para responder a perguntas futuras de outras áreas da empresa. No entanto, para otimizar o processamento e manter o foco no objetivo do MVP, **apenas as tabelas estritamente necessárias para as análises logísticas avançaram para a camada Silver** (filtrando tabelas não utilizadas como geolocalização, traduções, produtos e pagamentos).
+
+Abaixo está o fluxo detalhado da pipeline:
+
+1. **`02 - preparação.ipynb`**: Configuração inicial do Unity Catalog, criando o catálogo e os esquemas (`staging`, `bronze`, `silver`, `gold`).
+2. **`03 - download.ipynb`**: Extração (Extract) automática da base completa via API do Kaggle para um Volume do Databricks (`staging`).
+3. **`04 - bronze.ipynb`**: Carga (Load) inicial de **todos** os ficheiros CSV transformados no formato otimizado Delta na camada Bronze, acompanhados da documentação de metadados e domínios.
+4. **`05 - silver.ipynb`**: Filtro arquitetural (apenas as tabelas `orders`, `order_items`, `order_reviews`, `customers` e `sellers` avançam). Aplicação de transformações (Transform), tipagem de datas e auditoria de qualidade.
+5. **`06 - gold.ipynb`**: Desnormalização final e criação do modelo analítico em Estrela (`fato_logistica`).
 
 ![Tabelas Persistidas](link_para_imagem_das_tabelas_no_catalog.png)
-*(Captura de tela comprovando as tabelas guardadas no Databricks)*
+*(Captura de ecrã comprovando as tabelas guardadas no Databricks)*
 
 ---
 
