@@ -24,7 +24,7 @@ Utilizamos o **Brazilian E-Commerce Public Dataset by Olist**. A base é relacio
 
 A extração dos dados foi automatizada através de um script em Python utilizando a biblioteca `kagglehub`. Os ficheiros CSV foram descarregados diretamente para o ambiente da nuvem e armazenados num **Volume do Unity Catalog** no Databricks, simulando um Data Lake. 
 
-* **Script de referência:** [`03 - download.ipynb`](link_para_o_seu_script_no_github)
+* **Script de referência:** [`03 - download.ipynb`](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Notebooks/03%20-%20download.ipynb)
 
 ---
 
@@ -34,7 +34,7 @@ Adotamos a **Arquitetura Medalhão** (Bronze, Silver, Gold) para organizar o nos
 
 O **Catálogo de Dados** foi integralmente documentado no Unity Catalog do Databricks, detalhando descrições, tipos de dados e os **domínios de valores** de cada coluna (ex: limites numéricos e categorias aceites).
 
-* **Script de referência:** [`04 - bronze.ipynb`](link_para_o_seu_script_no_github)
+* **Script de referência:** [`04 - bronze.ipynb`](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Notebooks/04%20-%20bronze.ipynb)
 
 ![Catálogo de Dados Databricks](link_para_sua_imagem_do_catalogo.png)
 *(Captura de tela demonstrando as colunas documentadas com domínios no Unity Catalog)*
@@ -63,7 +63,7 @@ Antes das transformações na camada Silver, conduzimos uma auditoria de qualida
 * **Unicidade:** Validamos que a chave `order_id` não possuía duplicatas na tabela de pedidos. Na tabela de itens e avaliações, aplicamos `dropDuplicates(["order_id"])` para não inflacionar os cálculos.
 * **Acurácia (Outliers):** Encontramos valores de frete iguais a `$0.0`. Estes não foram descartados, pois representam promoções legítimas de "Frete Grátis".
 
-* **Script de referência:** [`05 - silver.ipynb`](link_para_o_seu_script_no_github)
+* **Script de referência:** [`05 - silver.ipynb`](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Notebooks/05%20-%20silver.ipynb)
 
 ---
 
@@ -87,7 +87,7 @@ Confirmamos a correlação direta: pedidos com atrasos longos concentram quase a
 Listamos um ranking de vendedores (Sellers) que falham sistematicamente (tempo médio de processamento interno superior a 10 dias).
 ![Resultado SQL 4](link_para_screenshot_da_query_4.png)
 
-* **Script de referência:** [`07 - analises.ipynb`](link_para_o_seu_script_no_github)
+* **Script de referência:** [`07 - analises.ipynb`](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Notebooks/07%20-%20analise.ipynb)
 
 ---
 
