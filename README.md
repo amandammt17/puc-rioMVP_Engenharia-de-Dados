@@ -1,4 +1,3 @@
-# puc-rioMVP_Engenharia-de-Dados
 # MVP de Engenharia de Dados: Otimização Logística e Satisfação do Cliente no E-commerce
 
 Este repositório contém o Produto Mínimo Viável (MVP) desenvolvido para a disciplina de Engenharia de Dados. O projeto implementa um pipeline ETL completo na nuvem (Databricks), desde a ingestão de dados brutos até à modelagem analítica.
@@ -95,8 +94,9 @@ Abaixo está o fluxo detalhado da pipeline:
 4. **`05 - silver.ipynb`**: Filtro arquitetural (apenas as tabelas `orders`, `order_items`, `order_reviews`, `customers` e `sellers` avançam). Aplicação de transformações (Transform), tipagem de datas e auditoria de qualidade.
 5. **`06 - gold.ipynb`**: Desnormalização final e criação do modelo analítico em Estrela (`fato_logistica`).
 
-![Tabelas Persistidas](link_para_imagem_das_tabelas_no_catalog.png)
-*(Captura de ecrã comprovando as tabelas guardadas no Databricks)*
+![Tabelas Persistidas](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Screenshots/4_tabelas_persistidas.png)
+
+*(Captura de tela comprovando as tabelas guardadas no Databricks)*
 
 ---
 
@@ -104,8 +104,20 @@ Abaixo está o fluxo detalhado da pipeline:
 
 Antes das transformações na camada Silver, conduzimos uma auditoria de qualidade rigorosa focada em Completude, Unicidade, Consistência e Acurácia:
 * **Completude (Nulos):** Detectamos nulos na coluna `order_delivered_customer_date`. A análise revelou que pertenciam a pedidos cancelados. **Solução:** Filtramos o dataset para manter apenas pedidos com status `delivered`.
+  
+  ![Nulos](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Screenshots/5_nulos.png)
+  
+*(Captura de tela comprovando a detecção de nulos)*
 * **Unicidade:** Validamos que a chave `order_id` não possuía duplicatas na tabela de pedidos. Na tabela de itens e avaliações, aplicamos `dropDuplicates(["order_id"])` para não inflacionar os cálculos.
+  
+  ![Valores únicos](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Screenshots/5_unicidade.png)
+  
+*(Captura de tela comprovando a unicidade)*
 * **Acurácia (Outliers):** Encontramos valores de frete iguais a `$0.0`. Estes não foram descartados, pois representam promoções legítimas de "Frete Grátis".
+  
+  ![Frete negativo ou zero](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Screenshots/5_acuracia.png)
+  
+  *(Captura de tela comprovando a detecção de outliers)*
 
 * **Script de referência:** [`05 - silver.ipynb`](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Notebooks/05%20-%20silver.ipynb)
 
@@ -117,19 +129,23 @@ Com os dados modelados na tabela `fato_logistica` (Camada Gold), respondemos às
 
 **1. Visão Geográfica (Rotas Críticas):**
 Identificámos que as rotas com origem no Sudeste e destino nas regiões Norte/Nordeste lideram os dias de atraso absoluto.
-![Resultado SQL 1](link_para_screenshot_da_query_1.png)
+
+![Resultado SQL 1](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Screenshots/6_query1.png)
 
 **2. Localização do Gargalo:**
 A análise provou que a maior parcela do tempo logístico (e dos atrasos) ocorre na etapa de transporte rodoviário, e não no processamento interno dos parceiros.
-![Resultado SQL 2](link_para_screenshot_da_query_2.png)
+
+![Resultado SQL 2](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Screenshots/6_query2.png)
 
 **3. Impacto na Satisfação:**
 Confirmamos a correlação direta: pedidos com atrasos longos concentram quase a totalidade das avaliações de 1 e 2 estrelas.
-![Resultado SQL 3](link_para_screenshot_da_query_3.png)
+
+![Resultado SQL 3](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Screenshots/6_query3.png)
 
 **4. Performance de Parceiros:**
 Listamos um ranking de vendedores (Sellers) que falham sistematicamente (tempo médio de processamento interno superior a 10 dias).
-![Resultado SQL 4](link_para_screenshot_da_query_4.png)
+
+![Resultado SQL 4](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Screenshots/6_query4.png)
 
 * **Script de referência:** [`07 - analises.ipynb`](https://github.com/amandammt17/puc-rioMVP_Engenharia-de-Dados/blob/main/Notebooks/07%20-%20analise.ipynb)
 
